@@ -48,7 +48,7 @@ end
 
 % Define raster-/vectorizable objects
 rasobj_axes={'patch','surface','contour','image','light'};  % rasterizable axes objects
-isRaster=@(graphicsObj) any(strcmp(graphicsObj.Type, {'patch','surface','contour','image','light'}));
+isRaster=@(graphicsObj) any(strcmp(graphicsObj.Type, rasobj_axes));
 
 % Rasterise and layer -----------------------------------------------------
 % hide everything graphical in raster to set up a blank canvas
@@ -104,6 +104,7 @@ for i=1:length(raxesHandle)
         % stretch image limits to figure limits
         timg_raster.XData=[x0,x1];
         timg_raster.YData=[y0,y1];
+        timg_raster.Clipping='off';      % debug: image can flow out of axes 
         
         % layer placement
         tn_new_objs=sum(b_rastobjs(1:j-1));
@@ -113,6 +114,22 @@ end
 % cleanup 
 close(rasterFigure);
         
+% colorbar ticks to original
+hcbOriginal = findall(figureHandle, 'type', 'colorbar');
+hcbVecrast = findall(vecrastFigure, 'type', 'colorbar');
+
+for i=1:numel(hcbOriginal)
+    cbLimits = hcbOriginal(i).Limits;
+    hcbVecrast(i).Ticks = (hcbOriginal(i).Ticks - cbLimits(1))/diff(cbLimits);
+    hcbVecrast(i).TickLabels = hcbOriginal(i).TickLabels;
+end
+
+% Bring all annotations on top
+annotations = findall(vecrastFigure, 'Tag', 'scribeOverlay');
+for i = 1:length(annotations)
+    uistack(annotations(i), 'top');
+end
+
 % Ensure figure has finished drawing
 drawnow;
 
