@@ -19,7 +19,7 @@ el=linspace(-pi/2,pi/2,1e2);
 
 [gaz,gel] = ndgrid(az,el);
 
-f = @(th,phi) cos(th).*sin(phi);
+f = @(th,phi) 10 * sin(th).*sin(phi);
 
 F = f(gaz,gel);
 
@@ -44,4 +44,4 @@ for ii=1:numel(opt_stack)
 end
 
 % vecrast "improved"
-myvecrast(h,h.Name,600,'pdf');
+myvecrast(h,h.Name,300,'pdf');
