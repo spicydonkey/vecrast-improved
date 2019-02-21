@@ -6,17 +6,23 @@
 %
 %
 % Summary:
-%   Example: image with hatch
+%   Example: Cross-hatching of multi-face patch
+% EXAMPLE from by Neil Tandon (hatchfill)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 h=figure('Name','demo3');
 hold on;
 
-xlim([0,1]);
-ylim([0,1]);
+xdata = [2 2 0 2 5;
+   2 8 2 4 5;
+   8 8 2 4 8];
+ydata = [4 4 4 2 0;
+   8 4 6 2 2;
+   4 0 4 0 0];
 
-hp = patch('XData',[0 1 1 0],'YData',[0 0 1 1],'FaceColor','none','EdgeColor','none');
+hp = patch(xdata,ydata,linspace(0,1,size(xdata,2)),'EdgeColor','none');
 hatchfill2(hp,'cross','HatchAngle',45,'HatchDensity',20,'HatchColor','b','HatchLineWidth',2);
+title('Example 3: Hatching a patch object with multiple faces');
 
 ax=gca;
 box on;
