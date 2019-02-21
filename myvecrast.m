@@ -19,6 +19,7 @@ rasterFigure = copyobj(figureHandle, groot);
 set(rasterFigure, 'GraphicsSmoothing', 'on', 'color', 'w');     % different GraphicsSmoothing may create black grid-lines
 
 % Axes
+origaxesHandle = findall(figureHandle, 'type', 'axes');
 vraxesHandle = findall(vecrastFigure, 'type', 'axes');
 raxesHandle = findall(rasterFigure, 'type', 'axes');
 for i = 1:length(vraxesHandle)
@@ -60,9 +61,9 @@ temp_files={};
 for i=1:length(raxesHandle)
     tr_ax = raxesHandle(i);
     tvr_ax = vraxesHandle(i);
+    to_ax = origaxesHandle(i);
     
     % get figure canvas limits wrt this axes (normalised)
-    
     [x0, y0] = figpos2axpos(tr_ax,0,0);
     [x1, y1] = figpos2axpos(tr_ax,1,1);
     
@@ -91,25 +92,27 @@ for i=1:length(raxesHandle)
         
         % Update vec-rast figure ------------------------------------------
         % hide the rasterizable object
-        set(tvr_ax_objs(j),'visible','off');
+        %   NOTE: can cause dependent vectors to invis?
+        set(tvr_ax_objs(j),'visible','off');    
    
         % load rasterized png image into this axes
-        % NOTE: assumes axes.YDir is 'normal'. loads upside raster image down if YDir='reverse'
         [A, ~, alpha] = imread(tempfilename);
         if isempty(alpha)==1
-            timg_raster=imagesc(tvr_ax, flipud(A));
+            timg_raster=imagesc(tvr_ax, 'XData', [x0,x1], 'YData', [y0,y1], 'CData', flipud(A));
         else
-            timg_raster=imagesc(tvr_ax, flipud(A), 'alphaData', flipup(alpha));
+            timg_raster=imagesc(tvr_ax,  'XData', [x0,x1], 'YData', [y0,y1], 'CData', flipud(A), 'alphaData', flipup(alpha));
         end        
-        % stretch image limits to figure limits
-        timg_raster.XData=[x0,x1];
-        timg_raster.YData=[y0,y1];
         timg_raster.Clipping='off';      % debug: image can flow out of axes 
         
         % layer placement
         tn_new_objs=sum(b_rastobjs(1:j-1));
         uistack(timg_raster,'down',j-1+tn_new_objs);
     end
+    
+    % ensure axes properties are same as original
+    tvr_ax.YDir = to_ax.YDir;
+    tvr_ax.XLim = to_ax.XLim;
+    tvr_ax.YLim = to_ax.YLim;
 end
 % cleanup 
 close(rasterFigure);
@@ -135,7 +138,9 @@ drawnow;
 
 % Finalise ----------------------------------------------------------------
 % (optional) cleanup: delete temporary pngs
-delete(temp_files{:});       % COMMENT THIS IF YOU WANT TO KEEP PNG FILE
+if ~isempty(temp_files)
+    delete(temp_files{:});       % COMMENT THIS IF YOU WANT TO KEEP PNG FILE
+end
 
 % Print and close the combined vector-raster figure
 if strcmp(exportType, 'pdf') == 1
